@@ -25,6 +25,7 @@ def get_hostname_by_namespace(mm_conn, fp_conn):
     cursor = mm_conn.execute("select namespace_id from namespace where type = 'leaf' ")
     leafnodes = cursor.fetchall()
     cursor and cursor.close()
+    all_host = set()
 
     for leaf in leafnodes:
         path = []
@@ -45,6 +46,8 @@ def get_hostname_by_namespace(mm_conn, fp_conn):
         if not len(tmp_hostname):
             continue
 
+        all_host.update(tmp_hostname)
+
         get_namespace(mm_conn, leaf[0], path)
 
         tmp_dict['hostname'] = '|'.join(tmp_hostname)
@@ -52,6 +55,10 @@ def get_hostname_by_namespace(mm_conn, fp_conn):
 
         list_namespace_hostname.append(tmp_dict)
 
+    all_dict = {}
+    all_dict['hostname'] = '|'.join(all_host)
+    all_dict['namespace'] = "all_machine"
+    list_namespace_hostname.append(all_dict)
     return list_namespace_hostname
 
 
@@ -65,7 +72,7 @@ def get_id(db_conn, name):
     id = cursor.fetchone()
     cursor and cursor.close()
 
-    if len(id):
+    if id is not None:
         return id[0]
     else:
         return None
@@ -195,7 +202,7 @@ def sync_dashboard(sync_redis, mm_conn, db_conn, fp_conn):
                 screen_id = exist
                 log.debug("pid:%s,namespace:%s is not exist in redis but in db" % (pid, namespace))
             else:
-                log.info("pid:%s,namespace:%s is not exist,add it")
+                log.info("pid:%s,namespace:%s is not exist,add it" % (pid, namespace))
                 screen_id = add_screen(db_conn, pid, namespace)  # not in redis and db ,add it
 
             if screen_id is None:
@@ -298,7 +305,7 @@ if __name__ == '__main__':
         mm_conn._conn.close()
         db_conn._conn.close()
         fp_conn._conn.close()
-        time.sleep(60)
+        time.sleep(600)
 
 
 
