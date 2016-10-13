@@ -25,7 +25,6 @@ def get_hostname_by_namespace(mm_conn, fp_conn):
     cursor = mm_conn.execute("select namespace_id from namespace where type = 'leaf' ")
     leafnodes = cursor.fetchall()
     cursor and cursor.close()
-    all_host = set()
 
     for leaf in leafnodes:
         path = []
@@ -46,8 +45,6 @@ def get_hostname_by_namespace(mm_conn, fp_conn):
         if not len(tmp_hostname):
             continue
 
-        all_host.update(tmp_hostname)
-
         get_namespace(mm_conn, leaf[0], path)
 
         tmp_dict['hostname'] = '|'.join(tmp_hostname)
@@ -55,10 +52,6 @@ def get_hostname_by_namespace(mm_conn, fp_conn):
 
         list_namespace_hostname.append(tmp_dict)
 
-    all_dict = {}
-    all_dict['hostname'] = '|'.join(all_host)
-    all_dict['namespace'] = "all_machine"
-    list_namespace_hostname.append(all_dict)
     return list_namespace_hostname
 
 
